@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zaloguj się do Y - Platforma Y</title>
-    <link rel="stylesheet" href="css/login.css">
-</head>
-<body>
+<?php
+$pageTitle = 'Zaloguj się do Y - Platforma Y';
+$cssFile = 'css/login.css';
+require_once 'includes/header.php';
+?>
     <div class="container">
         <!-- Lewa sekcja z logo -->
         <div class="left-section">
