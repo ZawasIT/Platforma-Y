@@ -10,7 +10,7 @@
     <script src="js/modules/interactions.js"></script>
     <script src="js/modules/posts.js"></script>
     <script src="js/modules/replies.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=<?php echo time(); ?>"></script>
 
 </body>
 </html>

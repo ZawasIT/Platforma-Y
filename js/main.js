@@ -17,9 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initPostMenuHandlers();
     initReplyHandlers();
     
-    // Load posts only on main page (not profile)
+    // Load posts only on main page (not profile or search)
     const isProfilePage = !!document.getElementById('profile-data');
-    if (!isProfilePage) {
+    const isSearchPage = !!document.getElementById('search-query') || window.location.pathname.includes('search.php');
+    if (!isProfilePage && !isSearchPage) {
         loadPosts();
     }
     
@@ -30,7 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize feed tabs (Dla Ciebie / Obserwowani)
  */
 function initFeedTabs() {
-    const feedTabs = document.querySelectorAll('.feed-tab');
+    // Nie inicjalizuj zakładek feedu na stronie wyszukiwania (obsługiwane przez search.js)
+    if (document.getElementById('search-query') || window.location.pathname.includes('search.php')) return;
+
+    const feedTabs = document.querySelectorAll('.feed-tab:not(.search-tab)');
     if (!feedTabs.length) return;
     
     feedTabs.forEach(tab => {
