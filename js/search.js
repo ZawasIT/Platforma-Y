@@ -73,11 +73,6 @@ document.addEventListener('DOMContentLoaded', () => { // eslint-disable-line
             }
             const finalHTML = data.map(user => renderUser(user)).join('');
             resultsContainer.innerHTML = finalHTML;
-
-            // Podłącz nasłuchiwanie zdarzeń dla użytkowników (np. przyciski obserwuj)
-            if (window.Interactions && typeof window.Interactions.attachEventListeners === 'function') {
-                window.Interactions.attachEventListeners(resultsContainer);
-            }
         } else { // 'popular' lub 'latest'
             // Sprawdź, czy pierwszy element wygląda jak obiekt posta
             if (typeof data[0].content === 'undefined') {
@@ -103,7 +98,12 @@ document.addEventListener('DOMContentLoaded', () => { // eslint-disable-line
     const renderUser = (user) => {
         const isFollowing = user.is_following == 1;
         const followButtonText = isFollowing ? 'Obserwujesz' : 'Obserwuj';
-        const followButtonClass = isFollowing ? 'following' : '';
+        
+        // Style dla przycisku obserwacji zgodnie z modułem interactions.js
+        const followButtonStyle = isFollowing 
+            ? 'background-color: transparent; color: var(--text-primary); border: 1px solid var(--bg-border);'
+            : 'background-color: var(--text-primary); color: var(--bg-primary); border: none;';
+        
         const basePath = getBasePath();
         
         return `
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => { // eslint-disable-line
                     </a>
                     <p class="profile-bio" style="font-size: 15px; margin-top: 4px;">${escapeHTML(user.bio || '')}</p>
                 </div>
-                <button class="follow-btn ${followButtonClass}" data-user-id="${user.id}">${followButtonText}</button>
+                <button class="follow-btn" data-user-id="${user.id}" style="${followButtonStyle}">${followButtonText}</button>
             </div>
         `;
     };

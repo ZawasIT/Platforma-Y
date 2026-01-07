@@ -13,9 +13,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all modules
     initFeedTabs();
     initNewPostForm();
+    initSearchLink();
     initInteractionHandlers();
     initPostMenuHandlers();
     initReplyHandlers();
+    
+    // Initialize notifications module
+    if (typeof Notifications !== 'undefined') {
+        Notifications.init();
+    }
+    
+    // Initialize media module (emoji, images)
+    if (typeof Media !== 'undefined') {
+        Media.init();
+    }
+    
+    // Initialize sidebar module (recent posts, suggested users)
+    if (typeof Sidebar !== 'undefined') {
+        Sidebar.init();
+    }
+    
+    // Initialize and update messages count on all pages
+    if (typeof Messages !== 'undefined') {
+        Messages.updateGlobalMessagesCount();
+        // Odświeżaj licznik co 30 sekund
+        setInterval(() => {
+            Messages.updateGlobalMessagesCount();
+        }, 30000);
+    }
     
     // Load posts only on main page (not profile or search)
     const isProfilePage = !!document.getElementById('profile-data');
@@ -60,21 +85,48 @@ function initNewPostForm() {
     const postSubmitBtn = document.querySelector('.post-submit-btn');
     const mainPostButton = document.querySelector('.post-button');
 
+    // Main post button w sidebarze - zawsze inicjalizuj
+    if (mainPostButton) {
+        mainPostButton.addEventListener('click', function() {
+            // Sprawdź czy jesteśmy na stronie głównej
+            const isMainPage = window.location.pathname.endsWith('index.php') || 
+                               window.location.pathname.endsWith('/') ||
+                               window.location.pathname.includes('Platforma_Y/index.php') ||
+                               window.location.pathname === '/Platforma_Y/';
+            
+            if (isMainPage && textarea) {
+                // Jesteśmy na stronie głównej - przejdź do textarea
+                textarea.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Jesteśmy na innej stronie - przenieś na główną
+                window.location.href = 'index.php';
+            }
+        });
+    }
+
+    // Jeśli nie ma formularza, zakończ (ale przycisk sidebar już działa)
     if (!textarea || !postSubmitBtn) return;
 
-    // Auto-resize textarea
-    textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
+    // Funkcja sprawdzająca czy post można wysłać (dostępna globalnie)
+    window.updatePostSubmitButton = function() {
+        const hasText = textarea.value.trim().length > 0;
+        const hasImage = typeof Media !== 'undefined' && Media.getSelectedImage() !== null;
         
-        // Enable/disable submit button
-        if (this.value.trim().length > 0) {
+        if (hasText || hasImage) {
             postSubmitBtn.style.opacity = '1';
             postSubmitBtn.disabled = false;
         } else {
             postSubmitBtn.style.opacity = '0.5';
             postSubmitBtn.disabled = true;
         }
+    };
+
+    // Auto-resize textarea
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+        window.updatePostSubmitButton();
     });
 
     // Initialize button state
@@ -85,8 +137,9 @@ function initNewPostForm() {
     postSubmitBtn.addEventListener('click', function(e) {
         e.preventDefault();
         const content = textarea.value.trim();
+        const hasImage = typeof Media !== 'undefined' && Media.getSelectedImage() !== null;
         
-        if (content.length === 0) {
+        if (content.length === 0 && !hasImage) {
             showNotification('Post nie może być pusty', 'error');
             return;
         }
@@ -103,6 +156,11 @@ function initNewPostForm() {
         const formData = new FormData();
         formData.append('content', content);
         
+        // Dodaj zdjęcie jeśli zostało wybrane
+        if (typeof Media !== 'undefined' && Media.getSelectedImage()) {
+            formData.append('image', Media.getSelectedImage());
+        }
+        
         fetch('includes/create_post.php', {
             method: 'POST',
             body: formData
@@ -112,6 +170,11 @@ function initNewPostForm() {
             if (data.success) {
                 textarea.value = '';
                 textarea.style.height = 'auto';
+                
+                // Wyczyść wybrane zdjęcie
+                if (typeof Media !== 'undefined') {
+                    Media.clearSelectedImage();
+                }
                 
                 addPostToFeed(data.post);
                 
@@ -131,14 +194,6 @@ function initNewPostForm() {
             postSubmitBtn.textContent = originalText;
         });
     });
-
-    // Main post button in sidebar
-    if (mainPostButton) {
-        mainPostButton.addEventListener('click', function() {
-            textarea.focus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
 
     // Character counter
     const charCounter = document.createElement('div');
@@ -164,4 +219,33 @@ function initNewPostForm() {
             charCounter.style.color = 'var(--text-secondary)';
         }
     });
+}
+
+/**
+ * Initialize search link
+ */
+function initSearchLink() {
+    const searchLink = document.getElementById('search-link');
+    
+    if (searchLink) {
+        searchLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Sprawdź czy jesteśmy na stronie wyszukiwania
+            const isSearchPage = !!document.getElementById('search-query') || 
+                                  window.location.pathname.includes('search.php');
+            
+            if (isSearchPage) {
+                // Jesteśmy na stronie wyszukiwania - przejdź do input
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.focus();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } else {
+                // Jesteśmy na innej stronie - przenieś na wyszukiwanie
+                window.location.href = 'search.php';
+            }
+        });
+    }
 }

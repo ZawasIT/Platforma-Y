@@ -10,6 +10,10 @@
     <script src="js/modules/interactions.js"></script>
     <script src="js/modules/posts.js"></script>
     <script src="js/modules/replies.js"></script>
+    <script src="js/modules/notifications.js"></script>
+    <script src="js/modules/messages.js"></script>
+    <script src="js/modules/media.js"></script>
+    <script src="js/modules/sidebar.js"></script>
     <script src="js/main.js?v=<?php echo time(); ?>"></script>
 
 </body>

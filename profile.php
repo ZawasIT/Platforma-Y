@@ -68,23 +68,19 @@ $joinDatePolish = [
 ];
 $joinDateFormatted = str_replace(array_keys($joinDatePolish), array_values($joinDatePolish), $joinDateFormatted);
 
-// Pobiera sugestie użytkowników do obserwowania (tylko dla profili innych użytkowników)
-$suggestedUsers = [];
-if (!$isOwnProfile) {
-    $stmt = $pdo->prepare("
-        SELECT id, username, full_name, bio, profile_image, verified 
-        FROM users 
-        WHERE id != ? 
-        AND id != ?
-        AND id NOT IN (
-            SELECT following_id FROM follows WHERE follower_id = ?
-        )
-        ORDER BY RAND()
-        LIMIT 3
-    ");
-    $stmt->execute([$currentUserId, $profileUser['id'], $currentUserId]);
-    $suggestedUsers = $stmt->fetchAll();
-}
+// Pobiera sugestie użytkowników do obserwowania
+$stmt = $pdo->prepare("
+    SELECT id, username, full_name, bio, profile_image, verified 
+    FROM users 
+    WHERE id != ? 
+    AND id NOT IN (
+        SELECT following_id FROM follows WHERE follower_id = ?
+    )
+    ORDER BY RAND()
+    LIMIT 5
+");
+$stmt->execute([$currentUserId, $currentUserId]);
+$suggestedUsers = $stmt->fetchAll();
 
 // Ustawienia dla nagłówka
 $pageTitle = htmlspecialchars($profileUser['full_name']) . ' (@' . htmlspecialchars($profileUser['username']) . ') / Platforma Y';
@@ -122,13 +118,18 @@ require_once 'includes/header.php';
     <!-- Informacje o profilu -->
     <div class="profile-info-section">
         <div class="profile-avatar-wrapper">
-            <img src="<?php echo htmlspecialchars($profileUser['profile_image']); ?>" alt="Avatar" class="profile-avatar">
+            <img src="<?php echo htmlspecialchars($profileUser['profile_image']); ?>" alt="Avatar" class="profile-avatar" id="profileImg">
         </div>
         
         <div class="profile-actions">
             <?php if ($isOwnProfile): ?>
                 <button class="edit-profile-btn" id="editProfileBtn">Edytuj profil</button>
             <?php else: ?>
+                <button class="message-btn" data-user-id="<?php echo $profileUser['id']; ?>" title="Wyślij wiadomość">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <g><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"></path></g>
+                    </svg>
+                </button>
                 <button class="follow-btn <?php echo $profileUser['is_following'] ? 'following' : ''; ?>" 
                         data-user-id="<?php echo $profileUser['id']; ?>">
                     <?php echo $profileUser['is_following'] ? 'Obserwujesz' : 'Obserwuj'; ?>

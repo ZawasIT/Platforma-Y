@@ -36,10 +36,12 @@ if (mb_strlen($content) > 280) {
     exit;
 }
 
-// Sprawdza czy post istnieje
-$stmt = $pdo->prepare("SELECT id FROM posts WHERE id = ?");
+// Sprawdza czy post istnieje i pobiera user_id autora posta
+$stmt = $pdo->prepare("SELECT id, user_id FROM posts WHERE id = ?");
 $stmt->execute([$postId]);
-if (!$stmt->fetch()) {
+$post = $stmt->fetch();
+
+if (!$post) {
     echo json_encode(['success' => false, 'message' => 'Post nie istnieje']);
     exit;
 }
@@ -50,6 +52,15 @@ try {
     $stmt->execute([$postId, $userId, $content]);
     
     $replyId = $pdo->lastInsertId();
+    
+    // Dodaje powiadomienie dla autora posta (jeśli to nie własny post)
+    if ($post['user_id'] != $userId) {
+        $stmt = $pdo->prepare("
+            INSERT INTO notifications (user_id, actor_id, type, post_id, reply_id, created_at) 
+            VALUES (?, ?, 'reply', ?, ?, NOW())
+        ");
+        $stmt->execute([$post['user_id'], $userId, $postId, $replyId]);
+    }
     
     // Pobiera dane nowo utworzonej odpowiedzi z danymi użytkownika
     $stmt = $pdo->prepare("

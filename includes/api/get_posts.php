@@ -89,6 +89,8 @@ try {
         SELECT 
             p.id,
             p.content,
+            p.media_type,
+            p.media_url,
             p.likes_count,
             p.reposts_count,
             p.replies_count,

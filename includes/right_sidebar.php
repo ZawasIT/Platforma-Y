@@ -14,56 +14,45 @@
         <input type="text" name="q" placeholder="Szukaj" class="search-input" value="<?php echo isset($_GET['q']) ? htmlspecialchars($_GET['q']) : ''; ?>">
     </form>
 
-    <!-- Co się dzieje? -->
+    <!-- Ostatnie posty -->
     <div class="widget">
-        <h2>Co się dzieje?</h2>
-        <div class="trending-item">
-            <div class="trending-category">Technologia · Na czasie</div>
-            <div class="trending-topic">#ReactJS</div>
-            <div class="trending-posts">15,2 tys. postów</div>
+        <h2>Ostatnie posty</h2>
+        <div id="recent-posts-widget">
+            <div class="loading" style="padding: 20px; text-align: center; color: var(--text-secondary);">Ładowanie...</div>
         </div>
-        <div class="trending-item">
-            <div class="trending-category">Polska · Trendy</div>
-            <div class="trending-topic">#PlatformaY</div>
-            <div class="trending-posts">8,4 tys. postów</div>
-        </div>
-        <div class="trending-item">
-            <div class="trending-category">Programowanie · Na czasie</div>
-            <div class="trending-topic">#100DaysOfCode</div>
-            <div class="trending-posts">24,5 tys. postów</div>
-        </div>
-        <div class="trending-item">
-            <div class="trending-category">Wiadomości · LIVE</div>
-            <div class="trending-topic">Konferencja IT 2025</div>
-            <div class="trending-posts">3,2 tys. postów</div>
-        </div>
-        <a href="#" class="show-more">Pokaż więcej</a>
     </div>
 
     <!-- Kogo obserwować -->
-    <?php if (isset($suggestedUsers) && !empty($suggestedUsers)): ?>
     <div class="widget">
         <h2>Kogo obserwować</h2>
-        <?php foreach ($suggestedUsers as $user): ?>
-        <div class="follow-item">
-            <img src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar">
-            <div class="follow-info">
-                <div class="follow-name">
-                    <?php echo htmlspecialchars($user['full_name']); ?>
-                    <?php if ($user['verified']): ?>
-                        <svg viewBox="0 0 24 24" class="verified-badge" style="width: 16px; height: 16px; fill: #1D9BF0; display: inline-block; vertical-align: middle; margin-left: 2px;">
-                            <g><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2l-4.3-4.29 1.42-1.42 2.88 2.88 6.79-6.79 1.42 1.42-8.21 8.2z"></path></g>
-                        </svg>
-                    <?php endif; ?>
+        <div id="suggested-users-widget">
+            <?php if (isset($suggestedUsers) && !empty($suggestedUsers)): ?>
+                <?php foreach ($suggestedUsers as $user): ?>
+                <div class="follow-item">
+                    <a href="profile.php?user=<?php echo htmlspecialchars($user['username']); ?>">
+                        <img src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar">
+                    </a>
+                    <div class="follow-info">
+                        <a href="profile.php?user=<?php echo htmlspecialchars($user['username']); ?>" style="text-decoration: none; color: inherit;">
+                            <div class="follow-name">
+                                <?php echo htmlspecialchars($user['full_name']); ?>
+                                <?php if ($user['verified']): ?>
+                                    <svg viewBox="0 0 24 24" class="verified-badge" style="width: 16px; height: 16px; fill: #1D9BF0; display: inline-block; vertical-align: middle; margin-left: 2px;">
+                                        <g><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2l-4.3-4.29 1.42-1.42 2.88 2.88 6.79-6.79 1.42 1.42-8.21 8.2z"></path></g>
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                            <div class="follow-username">@<?php echo htmlspecialchars($user['username']); ?></div>
+                        </a>
+                    </div>
+                    <button class="follow-btn" data-user-id="<?php echo $user['id']; ?>" style="background-color: var(--text-primary); color: var(--bg-primary); border: none; padding: 6px 12px; font-size: 18px;">+</button>
                 </div>
-                <div class="follow-username">@<?php echo htmlspecialchars($user['username']); ?></div>
-            </div>
-            <button class="follow-btn" data-user-id="<?php echo $user['id']; ?>">Obserwuj</button>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="loading" style="padding: 20px; text-align: center; color: var(--text-secondary);">Ładowanie sugestii...</div>
+            <?php endif; ?>
         </div>
-        <?php endforeach; ?>
-        <a href="#" class="show-more">Pokaż więcej</a>
     </div>
-    <?php endif; ?>
 
     <!-- Stopka -->
     <div class="footer-links">

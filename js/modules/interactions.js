@@ -100,22 +100,25 @@ function handleFollowClick(followBtn) {
     followBtn.dataset.processing = 'true';
     
     const originalText = followBtn.textContent.trim();
-    const wasFollowing = originalText === 'Obserwujesz' || originalText === 'Przestań obserwować';
+    const isSidebarButton = followBtn.closest('.sidebar-right') !== null;
+    const wasFollowing = originalText === 'Obserwujesz' || originalText === 'Przestań obserwować' || originalText === '✓' || followBtn.classList.contains('following');
     const originalBgColor = followBtn.style.backgroundColor;
     const originalColor = followBtn.style.color;
     const originalBorder = followBtn.style.border;
     
     // Optymistyczna aktualizacja UI
     if (wasFollowing) {
-        followBtn.textContent = 'Obserwuj';
+        followBtn.textContent = isSidebarButton ? '+' : 'Obserwuj';
         followBtn.style.backgroundColor = 'var(--text-primary)';
         followBtn.style.color = 'var(--bg-primary)';
         followBtn.style.border = 'none';
+        followBtn.classList.remove('following');
     } else {
-        followBtn.textContent = 'Obserwujesz';
+        followBtn.textContent = isSidebarButton ? '✓' : 'Obserwujesz';
         followBtn.style.backgroundColor = 'transparent';
         followBtn.style.color = 'var(--text-primary)';
         followBtn.style.border = '1px solid var(--bg-border)';
+        followBtn.classList.add('following');
     }
     
     // Wyślij request do backendu
@@ -130,13 +133,16 @@ function handleFollowClick(followBtn) {
     .then(data => {
         if (data.success) {
             // Zaktualizuj stan przycisku zgodnie z akcją z serwera
+            const isSidebarBtn = followBtn.closest('.sidebar-right') !== null;
             if (data.action === 'followed') {
-                followBtn.textContent = 'Obserwujesz';
+                followBtn.textContent = isSidebarBtn ? '✓' : 'Obserwujesz';
+                followBtn.classList.add('following');
                 followBtn.style.backgroundColor = 'transparent';
                 followBtn.style.color = 'var(--text-primary)';
                 followBtn.style.border = '1px solid var(--bg-border)';
             } else {
-                followBtn.textContent = 'Obserwuj';
+                followBtn.textContent = isSidebarBtn ? '+' : 'Obserwuj';
+                followBtn.classList.remove('following');
                 followBtn.style.backgroundColor = 'var(--text-primary)';
                 followBtn.style.color = 'var(--bg-primary)';
                 followBtn.style.border = 'none';
@@ -212,11 +218,15 @@ function initInteractionHandlers() {
     document.addEventListener('mouseover', function(e) {
         if (e.target && typeof e.target.closest === 'function') {
             const followBtn = e.target.closest('.follow-btn');
-            if (followBtn && !followBtn.closest('.profile-actions') && followBtn.textContent.trim() === 'Obserwujesz') {
-                followBtn.textContent = 'Przestań obserwować';
-                followBtn.style.backgroundColor = 'rgba(244, 33, 46, 0.1)';
-                followBtn.style.borderColor = 'rgba(244, 33, 46, 0.4)';
-                followBtn.style.color = '#F4212E';
+            if (followBtn && !followBtn.closest('.profile-actions')) {
+                const isSidebarBtn = followBtn.closest('.sidebar-right') !== null;
+                const currentText = followBtn.textContent.trim();
+                if (currentText === 'Obserwujesz' || currentText === '✓') {
+                    followBtn.textContent = isSidebarBtn ? '-' : 'Przestań obserwować';
+                    followBtn.style.backgroundColor = 'rgba(244, 33, 46, 0.1)';
+                    followBtn.style.borderColor = 'rgba(244, 33, 46, 0.4)';
+                    followBtn.style.color = '#F4212E';
+                }
             }
         }
     }, true);
@@ -224,11 +234,15 @@ function initInteractionHandlers() {
     document.addEventListener('mouseout', function(e) {
         if (e.target && typeof e.target.closest === 'function') {
             const followBtn = e.target.closest('.follow-btn');
-            if (followBtn && !followBtn.closest('.profile-actions') && followBtn.textContent.trim() === 'Przestań obserwować') {
-                followBtn.textContent = 'Obserwujesz';
-                followBtn.style.backgroundColor = 'transparent';
-                followBtn.style.borderColor = 'var(--bg-border)';
-                followBtn.style.color = 'var(--text-primary)';
+            if (followBtn && !followBtn.closest('.profile-actions')) {
+                const isSidebarBtn = followBtn.closest('.sidebar-right') !== null;
+                const currentText = followBtn.textContent.trim();
+                if (currentText === 'Przestań obserwować' || currentText === '-') {
+                    followBtn.textContent = isSidebarBtn ? '✓' : 'Obserwujesz';
+                    followBtn.style.backgroundColor = 'transparent';
+                    followBtn.style.borderColor = 'var(--bg-border)';
+                    followBtn.style.color = 'var(--text-primary)';
+                }
             }
         }
     }, true);

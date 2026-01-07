@@ -26,14 +26,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup tabs
     initProfileTabs();
 
-    // Setup edit profile button
-    const editProfileBtn = document.getElementById('editProfileBtn');
-    if (editProfileBtn) {
-        editProfileBtn.addEventListener('click', openEditProfileModal);
-    }
+    // Setup edit buttons
+    setupEditButtons();
 
     // Setup profile follow button (special handling)
     setupProfileFollowButton();
+    
+    // Setup message button
+    setupMessageButton();
 
     console.log('Profile page - Gotowa!');
 });
@@ -352,6 +352,7 @@ function createAndShowEditModal(userData) {
         document.body.appendChild(modal);
         
         setupModalCloseHandlers(modal);
+        setupModalImageUpload(modal);
         
         const saveBtn = modal.querySelector('.modal-save');
         saveBtn.addEventListener('click', saveProfile);
@@ -362,6 +363,11 @@ function createAndShowEditModal(userData) {
         modal.querySelector('#editWebsite').value = userData.website || '';
         modal.querySelector('.edit-avatar').src = userData.profile_image;
         modal.querySelector('.edit-banner img').src = userData.banner_image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22200%22 viewBox=%220 0 600 200%22%3E%3Crect width=%22600%22 height=%22200%22 fill=%22%231DA1F2%22/%3E%3C/svg%3E';
+        
+        // Clear pending uploads when reopening
+        if (modal.pendingUploads) {
+            delete modal.pendingUploads;
+        }
     }
     
     modal.classList.add('active');
@@ -413,6 +419,17 @@ async function saveProfile() {
         formData.append('location', location);
         formData.append('website', website);
         
+        // Add pending image uploads
+        const modal = document.querySelector('.modal.edit-profile-modal');
+        if (modal && modal.pendingUploads) {
+            if (modal.pendingUploads.profile) {
+                formData.append('profile_image', modal.pendingUploads.profile);
+            }
+            if (modal.pendingUploads.banner) {
+                formData.append('banner_image', modal.pendingUploads.banner);
+            }
+        }
+        
         const response = await fetch('includes/update_profile.php', {
             method: 'POST',
             body: formData
@@ -443,9 +460,40 @@ async function saveProfile() {
                 bioElement.remove();
             }
             
-            showNotification('Profil został zaktualizowany!', 'success');
+            // Update profile image if changed
+            if (data.user.profile_image) {
+                const profileImg = document.getElementById('profileImg');
+                if (profileImg) {
+                    profileImg.src = data.user.profile_image + '?t=' + Date.now();
+                }
+                // Update sidebar avatar
+                const sidebarAvatar = document.querySelector('.sidebar-left .user-info img');
+                if (sidebarAvatar) {
+                    sidebarAvatar.src = data.user.profile_image + '?t=' + Date.now();
+                }
+            }
             
+            // Update banner image if changed
+            if (data.user.banner_image) {
+                const bannerImg = document.querySelector('.profile-banner img');
+                if (bannerImg) {
+                    bannerImg.src = data.user.banner_image + '?t=' + Date.now();
+                } else {
+                    // Create img if doesn't exist
+                    const banner = document.querySelector('.profile-banner');
+                    if (banner) {
+                        banner.innerHTML = `<img src="${data.user.banner_image}?t=${Date.now()}" alt="Banner" id="bannerImg">`;
+                    }
+                }
+            }
+            
+            // Clear pending uploads
             const modal = document.querySelector('.modal.edit-profile-modal');
+            if (modal && modal.pendingUploads) {
+                delete modal.pendingUploads;
+            }
+            
+            showNotification('Profil został zaktualizowany!', 'success');
             closeModal(modal);
         } else {
             showNotification(data.message || 'Błąd podczas zapisywania', 'error');
@@ -457,4 +505,178 @@ async function saveProfile() {
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
     }
+}
+
+/**
+ * Setup message button
+ */
+function setupMessageButton() {
+    const messageBtn = document.querySelector('.message-btn');
+    if (!messageBtn) return;
+    
+    messageBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const userId = this.dataset.userId;
+        if (!userId) {
+            console.error('No user ID found');
+            return;
+        }
+        
+        // Disable button podczas ładowania
+        this.disabled = true;
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<svg class="spinning" viewBox="0 0 24 24" width="20" height="20"><g><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" opacity=".3"></path><path d="M12 2C6.48 2 2 6.48 2 12h2c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8v2c5.52 0 10-4.48 10-10S17.52 2 12 2z"></path></g></svg>';
+        
+        try {
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            
+            const response = await fetch('includes/api/create_conversation.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Przekieruj do strony wiadomości z otwartą konwersacją
+                window.location.href = `messages.php?conversation=${data.conversation_id}`;
+            } else {
+                // Przywróć przycisk
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+                
+                // Pokaż szczegółowy komunikat błędu
+                let errorMsg = data.message || 'Błąd podczas tworzenia konwersacji';
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    errorMsg += '\nSprawdź konsolę przeglądarki aby uzyskać więcej informacji.';
+                }
+                showNotification(errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Error creating conversation:', error);
+            this.disabled = false;
+            this.innerHTML = originalHTML;
+            showNotification('Wystąpił błąd połączenia. Spróbuj ponownie.', 'error');
+        }
+    });
+}
+
+/**
+ * Setup image upload buttons in modal
+ */
+function setupModalImageUpload(modal) {
+    // Banner upload
+    const bannerUploadBtn = modal.querySelector('.banner-upload-btn');
+    if (bannerUploadBtn) {
+        bannerUploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/jpeg,image/png,image/gif,image/webp';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    uploadImageInModal(file, 'banner', modal);
+                }
+            };
+            input.click();
+        });
+    }
+
+    // Avatar upload
+    const avatarUploadBtn = modal.querySelector('.avatar-upload-btn');
+    if (avatarUploadBtn) {
+        avatarUploadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/jpeg,image/png,image/gif,image/webp';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    uploadImageInModal(file, 'profile', modal);
+                }
+            };
+            input.click();
+        });
+    }
+}
+
+/**
+ * Upload image in modal (preview only, actual upload on save)
+ */
+function uploadImageInModal(file, type, modal) {
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+        showNotification('Plik jest zbyt duży. Maksymalny rozmiar to 5MB.', 'error');
+        return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Nieprawidłowy format pliku. Dozwolone: JPG, PNG, GIF, WebP.', 'error');
+        return;
+    }
+
+    // Preview image in modal
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (type === 'banner') {
+            const bannerImg = modal.querySelector('.edit-banner img');
+            if (bannerImg) {
+                bannerImg.src = e.target.result;
+            }
+        } else if (type === 'profile') {
+            const avatarImg = modal.querySelector('.edit-avatar');
+            if (avatarImg) {
+                avatarImg.src = e.target.result;
+            }
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Store file for later upload
+    if (!modal.pendingUploads) {
+        modal.pendingUploads = {};
+    }
+    modal.pendingUploads[type] = file;
+}
+
+/**
+ * Setup all edit buttons
+ */
+function setupEditButtons() {
+    // Setup edit profile button
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', openEditProfileModal);
+    }
+}
+
+/**
+ * Show notification
+ */
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existing = document.querySelector('.profile-notification');
+    if (existing) {
+        existing.remove();
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `profile-notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }

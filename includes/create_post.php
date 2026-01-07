@@ -18,24 +18,67 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $userId = $_SESSION['user_id'];
 $content = trim($_POST['content'] ?? '');
 
-// Walidacja
-if (empty($content)) {
+// Obsługa uploadu zdjęcia
+$mediaType = 'none';
+$mediaUrl = null;
+$hasImage = isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK;
+
+// Walidacja - post musi mieć tekst lub zdjęcie
+if (empty($content) && !$hasImage) {
     echo json_encode(['success' => false, 'message' => 'Post nie może być pusty']);
     exit;
 }
 
-if (mb_strlen($content) > 280) {
+if (!empty($content) && mb_strlen($content) > 280) {
     echo json_encode(['success' => false, 'message' => 'Post może mieć maksymalnie 280 znaków']);
     exit;
 }
 
+if ($hasImage) {
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $maxSize = 5 * 1024 * 1024; // 5MB
+    
+    $fileType = $_FILES['image']['type'];
+    $fileSize = $_FILES['image']['size'];
+    
+    if (!in_array($fileType, $allowedTypes)) {
+        echo json_encode(['success' => false, 'message' => 'Nieprawidłowy typ pliku. Dozwolone: JPG, PNG, GIF, WebP']);
+        exit;
+    }
+    
+    if ($fileSize > $maxSize) {
+        echo json_encode(['success' => false, 'message' => 'Plik jest za duży. Maksymalny rozmiar: 5MB']);
+        exit;
+    }
+    
+    // Utwórz folder uploads jeśli nie istnieje
+    $uploadDir = __DIR__ . '/../uploads/posts/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    // Generuj unikalną nazwę pliku
+    $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+    $fileName = uniqid('post_', true) . '.' . $extension;
+    $filePath = $uploadDir . $fileName;
+    
+    if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+        $mediaType = ($fileType === 'image/gif') ? 'gif' : 'image';
+        $mediaUrl = 'uploads/posts/' . $fileName;
+    } else {
+        error_log("Failed to move uploaded file to: " . $filePath);
+        echo json_encode(['success' => false, 'message' => 'Nie udało się przesłać pliku']);
+        exit;
+    }
+}
+
 try {
-    // Tworzy post
+    // Tworzy post z mediami
     $stmt = $pdo->prepare("
-        INSERT INTO posts (user_id, content, created_at) 
-        VALUES (?, ?, NOW())
+        INSERT INTO posts (user_id, content, media_type, media_url, created_at) 
+        VALUES (?, ?, ?, ?, NOW())
     ");
-    $stmt->execute([$userId, $content]);
+    $stmt->execute([$userId, $content, $mediaType, $mediaUrl]);
     
     $postId = $pdo->lastInsertId();
     

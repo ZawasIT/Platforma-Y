@@ -19,6 +19,16 @@ function createPostElement(post) {
         </svg>
     ` : '';
     
+    // Media content
+    let mediaHTML = '';
+    if (post.media_type && post.media_type !== 'none' && post.media_url) {
+        mediaHTML = `
+            <div class="post-media">
+                <img src="${post.media_url}" alt="Post media" onclick="window.open('${post.media_url}', '_blank')">
+            </div>
+        `;
+    }
+    
     postDiv.innerHTML = `
         <a href="profile.php?user=${post.username}" class="post-avatar-link">
             <img src="${post.profile_image}" alt="Avatar" class="post-avatar" onerror="this.src='https://via.placeholder.com/40'">
@@ -43,6 +53,7 @@ function createPostElement(post) {
                 </button>
             </div>
             <div class="post-text">${escapeHtml(post.content)}</div>
+            ${mediaHTML}
             <div class="post-stats">
                 <button class="stat-btn reply-btn" data-post-id="${post.id}">
                     <svg viewBox="0 0 24 24" class="stat-icon">
