@@ -5,6 +5,7 @@
     <!-- Hidden data divs can be placed here if needed by JS -->
     
     <!-- Common JS files -->
+    <script src="js/theme.js"></script>
     <script src="js/utils/helpers.js"></script>
     <script src="js/modules/ui.js"></script>
     <script src="js/modules/interactions.js"></script>

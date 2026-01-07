@@ -108,6 +108,19 @@ body {
     background-color: #D7DBDC;
 }
 
+.google-btn:disabled,
+.apple-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #333;
+    color: #71767b;
+}
+
+.google-btn:disabled:hover,
+.apple-btn:disabled:hover {
+    background-color: #333;
+}
+
 .social-icon {
     width: 20px;
     height: 20px;

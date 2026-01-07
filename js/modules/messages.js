@@ -130,10 +130,27 @@ const Messages = {
         
         // Dodaj event listenery
         this.conversationsContainer.querySelectorAll('.conversation-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const convId = parseInt(item.dataset.conversationId);
-                this.openConversation(convId);
-            });
+            const convId = parseInt(item.dataset.conversationId);
+            
+            // Otwieranie konwersacji
+            const conversationContent = item.querySelector('.conversation-info, .conversation-avatar');
+            if (conversationContent) {
+                item.addEventListener('click', (e) => {
+                    // Nie otwieraj jeśli kliknięto przycisk usuwania
+                    if (!e.target.closest('.delete-conversation-btn')) {
+                        this.openConversation(convId);
+                    }
+                });
+            }
+            
+            // Usuwanie konwersacji
+            const deleteBtn = item.querySelector('.delete-conversation-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.deleteConversation(convId);
+                });
+            }
         });
     },
     
@@ -165,6 +182,11 @@ const Messages = {
                         ${unreadBadge}
                     </div>
                 </div>
+                <button class="delete-conversation-btn" title="Usuń konwersację">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                        <g><path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.11 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.27c1.58 0 2.88-1.22 3-2.79L19.93 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.27 0 .5.22.5.5V6h-4V4.5zm7.13 14.57c-.04.52-.47.93-1 .93H7.86c-.53 0-.96-.41-1-.93L6.07 8h11.85l-.79 11.07zM9 17v-6h2v6H9zm4 0v-6h2v6h-2z"></path></g>
+                    </svg>
+                </button>
             </div>
         `;
     },
@@ -405,6 +427,40 @@ const Messages = {
         } catch (error) {
             console.error('Błąd:', error);
             alert('Wystąpił błąd połączenia. Sprawdź konsolę przeglądarki.');
+        }
+    },
+    
+    async deleteConversation(conversationId) {
+        if (!confirm('Czy na pewno chcesz usunąć tę konwersację? Ta akcja jest nieodwracalna.')) {
+            return;
+        }
+        
+        try {
+            const formData = new FormData();
+            formData.append('conversation_id', conversationId);
+            
+            const response = await fetch('includes/api/delete_conversation.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Jeśli usunięto aktywną konwersację, zamknij panel czatu
+                if (this.currentConversationId == conversationId) {
+                    this.currentConversationId = null;
+                    this.showConversationsList();
+                }
+                
+                // Odśwież listę konwersacji
+                await this.loadConversations();
+            } else {
+                alert(data.message || 'Błąd podczas usuwania konwersacji');
+            }
+        } catch (error) {
+            console.error('Błąd:', error);
+            alert('Wystąpił błąd podczas usuwania konwersacji');
         }
     },
     

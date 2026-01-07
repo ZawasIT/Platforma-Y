@@ -22,6 +22,20 @@ if (!$currentUser) {
 $pageTitle = 'Wiadomości - Platforma Y';
 $cssFile = 'css/style.css';
 
+// Pobiera sugerowanych użytkowników dla right sidebar
+$stmt = $pdo->prepare("
+    SELECT u.id, u.username, u.full_name, u.profile_image, u.verified
+    FROM users u
+    WHERE u.id != ?
+    AND u.id NOT IN (
+        SELECT following_id FROM follows WHERE follower_id = ?
+    )
+    ORDER BY RAND()
+    LIMIT 5
+");
+$stmt->execute([$_SESSION['user_id'], $_SESSION['user_id']]);
+$suggestedUsers = $stmt->fetchAll();
+
 require_once 'includes/header.php';
 ?>
 

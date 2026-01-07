@@ -20,14 +20,24 @@ $activePage = basename($_SERVER['PHP_SELF']);
 ?>
 <aside class="sidebar-left">
     <div class="sidebar-content">
-        <!-- Logo -->
-        <a href="index.php" class="logo-link">
-            <svg viewBox="0 0 24 24" class="logo-icon" aria-hidden="true">
-                <g>
-                    <path d="m 18.244,2.25 h 3.308 l -7.227,8.26 8.502,11.24 H 16.17 c 0,0 -4.248284,-5.298111 -14.916,-19.5 H 8.08 l 4.713,6.231 z m -1.161,17.52 h 1.833 L 7.084,4.126 H 5.117 Z" fill="#e7e9ea"></path>
-                </g>
-            </svg>
-        </a>
+        <!-- Logo i przełącznik trybów -->
+        <div class="header-container">
+            <a href="index.php" class="logo-link">
+                <svg viewBox="0 0 24 24" class="logo-icon" aria-hidden="true">
+                    <g>
+                        <path d="m 18.244,2.25 h 3.308 l -7.227,8.26 8.502,11.24 H 16.17 c 0,0 -4.248284,-5.298111 -14.916,-19.5 H 8.08 l 4.713,6.231 z m -1.161,17.52 h 1.833 L 7.084,4.126 H 5.117 Z" fill="#e7e9ea"></path>
+                    </g>
+                </svg>
+            </a>
+            <button class="theme-toggle" id="theme-toggle" title="Przełącz tryb">
+                <svg viewBox="0 0 24 24" class="theme-icon-sun" style="display: none;">
+                    <g><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"></path></g>
+                </svg>
+                <svg viewBox="0 0 24 24" class="theme-icon-moon">
+                    <g><path d="M21.64 13a1 1 0 00-1.05-.14 8.05 8.05 0 01-3.37.73 8.15 8.15 0 01-8.14-8.1 8.59 8.59 0 01.25-2A1 1 0 008 2.36a10.14 10.14 0 1014 11.69 1 1 0 00-.36-1.05zm-9.5 6.69A8.14 8.14 0 017.08 5.22v.27a10.15 10.15 0 0010.14 10.14 9.79 9.79 0 002.1-.22 8.11 8.11 0 01-7.18 4.32z"></path></g>
+                </svg>
+            </button>
+        </div>
 
         <!-- Menu nawigacyjne -->
         <nav class="main-nav">

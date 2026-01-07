@@ -18,5 +18,14 @@ $bodyClass = $bodyClass ?? ''; // Allows for page-specific body classes
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="stylesheet" href="<?php echo $cssFile; ?>">
+    <script>
+        // Wczytaj zapisany tryb przed renderowaniem strony
+        (function() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
 </head>
 <body class="<?php echo $bodyClass; ?>">

@@ -16,6 +16,18 @@
     --accent-red: #F91880;
 }
 
+[data-theme="light"] {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F7F9F9;
+    --bg-hover: #F7F9F9;
+    --bg-border: #EFF3F4;
+    --text-primary: #0F1419;
+    --text-secondary: #536471;
+    --accent-blue: #1D9BF0;
+    --accent-blue-hover: #1A8CD8;
+    --accent-red: #F91880;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-primary);
@@ -43,6 +55,14 @@ body {
     padding: 0 12px;
 }
 
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-top: 8px;
+}
+
 .logo-link {
     width: 50px;
     height: 50px;
@@ -50,7 +70,6 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    margin: 4px 0 8px;
     transition: background-color 0.2s;
 }
 
@@ -59,8 +78,8 @@ body {
 }
 
 .logo-icon {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     fill: var(--text-primary);
 }
 
@@ -195,6 +214,38 @@ body {
     fill: #F4212E;
 }
 
+/* Przełącznik trybów */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--text-primary);
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    position: relative;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.05);
+    background-color: var(--text-secondary);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--bg-primary);
+    position: relative;
+    z-index: 1;
+}
+
 /* ===== MAIN CONTENT ===== */
 .main-content {
     flex: 1;
@@ -210,6 +261,10 @@ body {
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--bg-border);
     z-index: 10;
+}
+
+[data-theme="light"] .feed-header {
+    background-color: rgba(255, 255, 255, 0.85);
 }
 
 .feed-tabs {
@@ -483,7 +538,8 @@ body {
 /* Statystyki posta */
 .post-stats {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 40px;
     max-width: 425px;
     margin-top: 12px;
 }
@@ -549,6 +605,10 @@ body {
     top: 0;
     height: 100vh;
     overflow-y: auto;
+}
+
+.sidebar-right::-webkit-scrollbar {
+    display: none;
 }
 
 /* Wyszukiwarka */
@@ -735,19 +795,6 @@ body {
 }
 
 /* Scrollbar */
-.sidebar-right::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar-right::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar-right::-webkit-scrollbar-thumb {
-    background: var(--bg-border);
-    border-radius: 3px;
-}
-
 .sidebar-right::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
 }
@@ -1415,6 +1462,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 .notifications-header {
@@ -1423,6 +1471,7 @@ body {
     padding: 16px 20px;
     border-bottom: 1px solid var(--bg-border);
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .notifications-header h2 {
@@ -1487,13 +1536,15 @@ body {
 }
 
 .notifications-list {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 auto;
+    overflow-y: scroll;
     overflow-x: hidden;
+    min-height: 0;
+    max-height: calc(100vh - 70px);
 }
 
 .notifications-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .notifications-list::-webkit-scrollbar-track {
@@ -1502,7 +1553,7 @@ body {
 
 .notifications-list::-webkit-scrollbar-thumb {
     background: var(--bg-border);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .notifications-list::-webkit-scrollbar-thumb:hover {
@@ -1715,6 +1766,7 @@ body {
     border-bottom: 1px solid var(--bg-border);
     cursor: pointer;
     transition: background-color 0.2s;
+    position: relative;
 }
 
 .conversation-item:hover {
@@ -1724,6 +1776,34 @@ body {
 .conversation-item.active {
     background-color: rgba(29, 155, 240, 0.1);
     border-right: 2px solid var(--accent-blue);
+}
+
+.delete-conversation-btn {
+    position: absolute;
+    margin-top: auto;
+    top: 70%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conversation-item:hover .delete-conversation-btn {
+    opacity: 1;
+}
+
+.delete-conversation-btn:hover {
+    background-color: rgba(244, 33, 46, 0.1);
+    color: #F4212E;
 }
 
 .conversation-avatar {
